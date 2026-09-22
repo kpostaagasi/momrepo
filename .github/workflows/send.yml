@@ -1,0 +1,44 @@
+name: Momentum - ekibe gönder (onay)
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Üretim run ID (boş = son başarılı üretim)"
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - name: Run ID bul
+        id: rid
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RID: ${{ inputs.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$RID" ]; then RID=$(gh run list -R "$REPO" --workflow build.yml --status success -L 1 --json databaseId -q '.[0].databaseId'); fi
+          [[ "$RID" =~ ^[0-9]+$ ]] || { echo "Geçersiz run ID: $RID"; exit 1; }
+          echo "id=$RID" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v5
+        with:
+          name: momentum-rapor
+          path: enc/
+          run-id: ${{ steps.rid.outputs.id }}
+          github-token: ${{ github.token }}
+      - name: Raporu çöz
+        env:
+          ARTIFACT_PASS: ${{ secrets.ARTIFACT_PASS }}
+        run: openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:ARTIFACT_PASS -in enc/momentum-rapor.tar.gz.enc | tar -xzf -
+      - name: Ekibe gönder
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_CC: ${{ secrets.MAIL_CC }}
+        run: python send.py team

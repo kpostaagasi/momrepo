@@ -1,0 +1,7 @@
+out/
+raw.pkl
+res.pkl
+__pycache__/
+state/last.csv
+state/last_new.csv
+enc/

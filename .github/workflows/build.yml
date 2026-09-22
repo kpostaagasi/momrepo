@@ -1,0 +1,52 @@
+name: Momentum - haftalık üretim
+on:
+  schedule:
+    - cron: "7 6 * * 1"   # Pazartesi 09:07 TR (tam saat kuyruğundan kaçmak için 7. dakika)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: momentum-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ARTIFACT_PASS: ${{ secrets.ARTIFACT_PASS }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12", cache: pip }
+      - run: sudo apt-get install -y fonts-dejavu-core
+      - run: pip install -r requirements.txt
+      - name: Karşılaştırma tabanını çöz
+        run: |
+          test -n "$ARTIFACT_PASS" || { echo "ARTIFACT_PASS secret'ı tanımlı değil"; exit 1; }
+          if [ -f state/last.csv.enc ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:ARTIFACT_PASS -in state/last.csv.enc -out state/last.csv
+          fi
+      - name: Raporu üret
+        run: python run.py
+      - name: Raporu şifrele
+        run: |
+          mkdir -p enc
+          tar -czf - out/ | openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:ARTIFACT_PASS -out enc/momentum-rapor.tar.gz.enc
+      - uses: actions/upload-artifact@v5
+        with:
+          name: momentum-rapor
+          path: enc/momentum-rapor.tar.gz.enc
+          retention-days: 30
+      - name: Önizlemeyi bana gönder
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        run: python send.py preview
+      - name: Karşılaştırma tabanını kaydet (şifreli)
+        run: |
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:ARTIFACT_PASS -in state/last.csv -out state/last.csv.enc
+          git config user.name "momentum-bot"
+          git config user.email "actions@github.com"
+          git add state/last.csv.enc state/ndx.txt
+          git commit -m "state: $(ls out/*.pdf | grep -o '[0-9-]\{10\}')" || echo "değişiklik yok"
+          git push
