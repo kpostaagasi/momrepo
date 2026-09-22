@@ -32,3 +32,6 @@ Her pazartesi 09:00 (TR) cuma kapanışıyla PDF + Excel üretir, önce **yalnı
 - Nasdaq 100 listesi her koşuda api.nasdaq.com'dan çekilir; başarısızsa `state/ndx.txt` kullanılır.
 - Semboller %10'dan fazla başarısızsa ya da son bar 4 günden eskiyse iş durur, mail gitmez.
 - Parametre değişikliği (ağırlık, taban, winsorize) yapılırsa commit mesajına ve rapora yazılmalı; aksi halde haftalar karşılaştırılamaz.
+
+## Lisans
+MIT, ayrıntılar `LICENSE` dosyasında. Lisans kodu kapsar; üretilen raporlar yatırım tavsiyesi değildir.
