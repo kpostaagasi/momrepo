@@ -1,5 +1,6 @@
 import os, pickle, pandas as pd, numpy as np, io
 import matplotlib; matplotlib.use("Agg")
+import matplotlib.dates
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 from reportlab.lib.pagesizes import A4
@@ -87,6 +88,38 @@ def charts(t):
     ax.set_title(f"Pencere bazlı MOM · üst {n} / alt {n} (MOMADJ sırası)",fontsize=8)
     fig2.colorbar(im,ax=ax,fraction=.025,pad=.01).ax.tick_params(labelsize=5.5); fig2.tight_layout()
     return fig,fig2
+def topcards(t,n=3):
+    """Evrenin MOMADJ ilk n enstrümanı: 12 aylık fiyat + hacim / 504 günlük ortalama."""
+    top=t.head(n); fig=plt.figure(figsize=(7.6,1.68))
+    gs=fig.add_gridspec(2,len(top),height_ratios=[2.6,1],hspace=.08,wspace=.28)
+    for j,(i,rr) in enumerate(top.iterrows()):
+        df=R0["data"][rr.Sembol]; df=df[df.index<=DATE]
+        c=df.close.iloc[-252:]; up=rr.ret_12a>=0
+        ap=fig.add_subplot(gs[0,j]); av=fig.add_subplot(gs[1,j],sharex=ap)
+        ap.plot(c.index,c.values,color="#12314F",lw=.9)
+        ap.fill_between(c.index,c.values,c.min(),color="#2e7d32" if up else "#c62828",alpha=.08)
+        ap.axvspan(c.index[-21],c.index[-1],color="#B8862B",alpha=.12,lw=0)
+        ap.set_title(f"#{i+1} {rr.Enstrüman} · MOMADJ {rr.MOMADJ:+.2f} · {QS[rr.Kadran].split()[0]}",fontsize=6.6,loc="left")
+        ap.text(.02,.97,f"1a {pct(rr.ret_1a)} · 12a {pct(rr.ret_12a)}",transform=ap.transAxes,fontsize=5.6,va="top",color="#333",bbox=dict(fc="white",ec="none",alpha=.8,pad=.8))
+        ap.tick_params(labelbottom=False,labelsize=5.4)
+        v=None
+        if isinstance(rr.Not,str) and rr.Not.startswith("Vekil"):
+            ps=rr.Not.split(":")[1].split()[0]; pv=R0["data"].get(ps)
+            if pv is not None: v=pv.volume.astype(float).reindex(df.index)
+        elif not (isinstance(rr.Not,str) and rr.Not.startswith("Hacimsiz")):
+            v=df.volume.astype(float)
+        if v is not None and v.notna().any():
+            v=v.where(v>0); base=v.iloc[-504:].mean(); vv=v.iloc[-252:]
+            av.bar(vv.index,vv.values/base,width=1.2,color="#8a9bb0",lw=0)
+            av.axhline(1,color="#B8862B",lw=.7,ls="--")
+            av.set_ylim(0,max(np.nanpercentile(vv.values/base,98)*1.15,1.5))
+        else:
+            av.text(.5,.5,"hacim verisi yok",transform=av.transAxes,ha="center",va="center",fontsize=5.6,color="#777")
+            av.set_yticks([])
+        av.tick_params(labelsize=5.2); av.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%m.%y"))
+        av.xaxis.set_major_locator(matplotlib.dates.MonthLocator(interval=3))
+        for a in (ap,av): a.spines[["top","right"]].set_visible(False)
+    return fig
 W=182*mm
 R0=pickle.load(open("raw.pkl","rb"))
 DROPMAP={"Emtia":R0["COM"],"Tahvil / faiz":R0["BOND"],"Nasdaq 100":R0["NDX"],"BIST 30":[x+".IS" for x in R0["B30"]]}
@@ -145,6 +178,11 @@ else:
     story.append(Paragraph("Önceki koşu kaydı yok; karşılaştırma bir sonraki koşuda başlar.",B))
 story.append(Spacer(1,4))
 story.append(Paragraph("Q1 teyitli yükseliş (+/+) · Q2 teyitsiz yükseliş (+/−) · Q3 teyitli düşüş (−/+) · Q4 ilgisiz düşüş (−/−), ham MOM burada pozitif çıkar ve yanıltır · * olay işareti (1a ≥ %30, 12a < 0) · † vekil ETF hacmi.",S))
+story.append(PageBreak())
+story.append(Paragraph("Evren liderleri · MOMADJ ilk 3",H1))
+story.append(Paragraph("Üst panel: son 12 ay fiyat, altın bant son 1 ay. Alt panel: günlük hacim / 504 günlük ortalama, kesikli çizgi = 1 (ortalama). Vekil hacimli emtialarda ETF hacmi gösterilir.",S))
+for k,t in U.items():
+    story.append(KeepTogether([Paragraph(k,H2),img(topcards(t),W)]))
 story.append(PageBreak())
 for k,t in U.items():
     story.append(Paragraph(f"{k} · {len(t)} enstrüman",H1))
