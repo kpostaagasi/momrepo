@@ -16,7 +16,11 @@ else:
     m["To"]=os.environ["MAIL_TO"]
     if os.environ.get("MAIL_CC"): m["Cc"]=os.environ["MAIL_CC"]
     m["Subject"]=subj
-    body="Merhaba,\n\nHaftalık getiri–hacim momentum çalışması ektedir.\n\n"+body
+    body=("Merhaba,\n\n"
+          "Bu haftanın getiri–hacim momentum çalışmasını ekte paylaşıyorum. Öne çıkan başlıklar aşağıda:\n\n"
+          +body+
+          "\n\nSorularınız ve yorumlarınız için bana ulaşabilirsiniz.\n\n"
+          "Saygılarımla,\nKamil Postaagasi")
 m.set_content(body)
 for f,t in [(pdf,("application","pdf")),(xlsx,("application","vnd.openxmlformats-officedocument.spreadsheetml.sheet"))]:
     m.add_attachment(open(f,"rb").read(),maintype=t[0],subtype=t[1],filename=os.path.basename(f))
