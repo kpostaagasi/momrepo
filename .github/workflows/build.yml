@@ -1,7 +1,7 @@
 name: Momentum - haftalık üretim
 on:
-  schedule:
-    - cron: "7 6 * * 1"   # Pazartesi 09:07 TR (tam saat kuyruğundan kaçmak için 7. dakika)
+  # Zamanlama cron-job.org'da: Pazartesi 09:07 TR, workflow_dispatch
+  # (GitHub schedule'ı bu hesapta 4-6 saat gecikiyor).
   workflow_dispatch:
 permissions:
   contents: write
