@@ -3,7 +3,7 @@ import os, sys, glob, smtplib, datetime as dt
 from email.message import EmailMessage
 mode=sys.argv[1]; OUT=os.environ.get("OUT_DIR","out")
 pdf=sorted(glob.glob(f"{OUT}/Momentum_Calismasi_*.pdf"))[-1]; xlsx=pdf[:-4]+".xlsx"
-date=dt.date.fromisoformat(os.path.basename(pdf)[19:29])
+date=dt.date.fromisoformat(os.path.basename(pdf).rsplit("_",1)[1][:10])
 if (dt.date.today()-date).days>6: sys.exit(f"Rapor bayat ({date}); gönderilmedi.")
 body=open(f"{OUT}/summary.txt").read()
 user=os.environ["SMTP_USER"]; m=EmailMessage(); m["From"]=user

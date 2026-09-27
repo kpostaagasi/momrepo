@@ -7,7 +7,7 @@ def get(sym):
             r=requests.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=3y&interval=1d",headers=UA,timeout=20)
             j=r.json()["chart"]["result"][0]
             q=j["indicators"]["quote"][0]
-            df=pd.DataFrame({"close":q["close"],"volume":q["volume"]},index=pd.to_datetime(j["timestamp"],unit="s",utc=True).tz_convert(j["meta"]["exchangeTimezoneName"]).tz_localize(None).normalize())
+            df=pd.DataFrame({k:q[k] for k in ("open","high","low","close","volume")},index=pd.to_datetime(j["timestamp"],unit="s",utc=True).tz_convert(j["meta"]["exchangeTimezoneName"]).tz_localize(None).normalize())
             adj=j["indicators"].get("adjclose")
             if adj: df["close"]=adj[0]["adjclose"]
             df=df[~df.index.duplicated(keep="last")].dropna(subset=["close"])

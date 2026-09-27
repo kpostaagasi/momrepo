@@ -10,14 +10,16 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-pdfmetrics.registerFont(TTFont("DV","/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
-pdfmetrics.registerFont(TTFont("DVB","/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"))
+import matplotlib, os.path as _p
+_F=os.path.join(os.path.dirname(matplotlib.__file__),"mpl-data","fonts","ttf")  # DejaVu Türkçe karakterler için zorunlu; CI'da apt ile de kuruludur
+pdfmetrics.registerFont(TTFont("DV",_p.join(_F,"DejaVuSans.ttf")))
+pdfmetrics.registerFont(TTFont("DVB",_p.join(_F,"DejaVuSans-Bold.ttf")))
 from reportlab.pdfbase.pdfmetrics import registerFontFamily
 registerFontFamily("DV",normal="DV",bold="DVB")
 plt.rcParams.update({"font.family":"DejaVu Sans","font.size":7})
 r=pickle.load(open("res.pkl","rb")); U=r["U"]; DATE=r["DATE"]; DS=DATE.strftime("%d.%m.%Y")
 NAVY=colors.HexColor("#12314F"); GOLD=colors.HexColor("#B8862B")
-A=pd.concat(U.values()).sort_values("MOMADJ",ascending=False)
+A=pd.concat(U.values()).sort_values("MOM",ascending=False,na_position="last")
 K=["1a","3a","6a","12a"]
 H1=ParagraphStyle("h1",fontName="DVB",fontSize=13,textColor=NAVY,spaceAfter=3,leading=16)
 H2=ParagraphStyle("h2",fontName="DVB",fontSize=9,textColor=NAVY,spaceBefore=5,spaceAfter=2)
@@ -44,13 +46,14 @@ def tbl(data,widths,num_from=1,zebra=True,left_cols=(0,)):
 pct=lambda x:"—" if pd.isna(x) else f"{x*100:+.1f}%"
 f2=lambda x:"—" if pd.isna(x) else f"{x:+.2f}"
 def lastf(x): return f"{x:,.2f}" if x<10000 else f"{x:,.0f}"
-QS={"Q1 · Teyitli yükseliş":"Q1 Teyitli yük.","Q2 · Teyitsiz yükseliş":"Q2 Teyitsiz yük.","Q3 · Teyitli düşüş":"Q3 Teyitli düş.","Q4 · İlgisiz düşüş":"Q4 İlgisiz düş.","Hacimsiz":"Hacimsiz"}
+QS={"Q1 · Teyitli yükseliş":"Q1 Teyitli yük.","Q2 · Teyitsiz yükseliş":"Q2 Teyitsiz yük.","Q3 · Teyitli düşüş":"Q3 Teyitli düş.","Q4 · İlgisiz düşüş":"Q4 İlgisiz düş.","Likidite kilidi":"Likidite kilidi","Hacimsiz":"Hacimsiz"}
 def name(row): return row.Enstrüman+(" *" if row.Olay else "")+(" †" if isinstance(row.Not,str) and row.Not.startswith("Vekil") else "")
 def img(fig,w):
     b=io.BytesIO(); fig.savefig(b,format="png",dpi=200,bbox_inches="tight"); plt.close(fig); b.seek(0)
     iw,ih=fig.get_size_inches(); return Image(b,width=w,height=w*ih/iw)
 def topbot(t,n):
-    n=min(n,len(t)//2); return pd.concat([t.head(n),t.tail(n)])
+    """En iyi n / en kötü n. Skorlanmayan satırlar (likidite kilidi, hacimsiz) grafiğe girmez — çubuk çizemedikleri için boş ve yanıltıcı satır olurlar."""
+    s=t[t.MOM.notna()]; n=min(n,len(s)//2); return pd.concat([s.head(n),s.tail(n)])
 def charts(t):
     fig,(a1,a2)=plt.subplots(1,2,figsize=(7.6,3.4),gridspec_kw={"width_ratios":[1.15,1]})
     d=t[t.ZVOL.notna()]
@@ -65,15 +68,16 @@ def charts(t):
     for _,rr in ext.iterrows(): a1.annotate(rr.Enstrüman,(rr.ZRET,rr.ZVOL),fontsize=5.6,xytext=(3,2),textcoords="offset points")
     for (x,y,s,ha,va) in [(xm,ym,"Q1 Teyitli yükseliş","right","top"),(xm,-ym,"Q2 Teyitsiz yükseliş","right","bottom"),(-xm,ym,"Q3 Teyitli düşüş","left","top"),(-xm,-ym,"Q4 İlgisiz düşüş","left","bottom")]:
         a1.text(x*.97,y*.97,s,ha=ha,va=va,fontsize=6,color="#12314F",fontweight="bold")
-    a1.set_xlabel("ZRET (bileşik getiri z)"); a1.set_ylabel("ZVOL (bileşik hacim z)"); a1.set_title("Kadran saçılımı (renk = MOM)",fontsize=8)
+    a1.set_xlabel("ZRET (bileşik getiri skoru)"); a1.set_ylabel("ZVOL (bileşik hacim skoru)\nçarpan m = 0,50 + Φ(z) ∈ [0,506 ; 1,494]",fontsize=5.6); a1.set_title("Kadran saçılımı (renk = MOM)",fontsize=8)
     cb=fig.colorbar(sc,ax=a1,fraction=.04,pad=.01); cb.ax.tick_params(labelsize=5.5)
     b=topbot(t,10).iloc[::-1]
-    cols=["#2e7d32" if v>=0 else "#c62828" for v in b.MOMADJ]
-    a2.barh(range(len(b)),b.MOMADJ,color=cols,height=.7)
+    cols=["#2e7d32" if v>=0 else "#c62828" for v in b.MOM]
+    a2.barh(range(len(b)),b.MOM,color=cols,height=.7)
     a2.set_yticks(range(len(b))); a2.set_yticklabels(b.Enstrüman,fontsize=5.8); a2.axvline(0,color="#555",lw=.6)
-    m=abs(b.MOMADJ).max()
-    for i,v in enumerate(b.MOMADJ): a2.text(v+(0.02*m if v>=0 else -0.02*m),i,f"{v:+.2f}",va="center",ha="left" if v>=0 else "right",fontsize=5.4)
-    a2.set_xlim(-m*1.3,m*1.3); a2.set_title(f"Bileşik MOMADJ · en iyi / en kötü {len(b)//2}",fontsize=8)
+    m=abs(b.MOM).max()
+    for i,v in enumerate(b.MOM): a2.text(v+(0.02*m if v>=0 else -0.02*m),i,f"{v:+.2f}",va="center",ha="left" if v>=0 else "right",fontsize=5.4)
+    a2.set_xlim(-m*1.3,m*1.3); a2.set_title(f"Bileşik MOM · en iyi / en kötü {len(b)//2}",fontsize=8)
+    a2.set_xlabel("MOM = 0,40·MOM₁ₐ + 0,30·MOM₃ₐ + 0,20·MOM₆ₐ + 0,10·MOM₁₂ₐ",fontsize=5.6)
     for a in (a1,a2): a.spines[["top","right"]].set_visible(False)
     fig.tight_layout()
     h=topbot(t,9); M=h[[f"mom_{k}" for k in K]].values.astype(float)
@@ -85,51 +89,42 @@ def charts(t):
         for j in range(4): ax.text(j,i,"—" if np.isnan(M[i,j]) else f"{M[i,j]:+.2f}",ha="center",va="center",fontsize=5.8)
     ax.set_xticks(range(4)); ax.set_xticklabels(["MOM 1a","MOM 3a","MOM 6a","MOM 12a"]); ax.set_yticks(range(len(h))); ax.set_yticklabels(h.Enstrüman,fontsize=5.8)
     n=len(h)//2; ax.axhline(n-.5,color="#12314F",lw=1.2)
-    ax.set_title(f"Pencere bazlı MOM · üst {n} / alt {n} (MOMADJ sırası)",fontsize=8)
+    ax.set_title(f"Pencere bazlı MOM · üst {n} / alt {n} (MOM sırası)",fontsize=8)
     fig2.colorbar(im,ax=ax,fraction=.025,pad=.01).ax.tick_params(labelsize=5.5); fig2.tight_layout()
     return fig,fig2
-def topcards(t,n=3):
-    """Evrenin MOMADJ ilk n enstrümanı: 12 aylık fiyat + hacim / 504 günlük ortalama."""
-    top=t.head(n); fig=plt.figure(figsize=(7.6,1.68))
-    gs=fig.add_gridspec(2,len(top),height_ratios=[2.6,1],hspace=.08,wspace=.28)
-    for j,(i,rr) in enumerate(top.iterrows()):
-        df=R0["data"][rr.Sembol]; df=df[df.index<=DATE]
-        c=df.close.iloc[-252:]; up=rr.ret_12a>=0
-        ap=fig.add_subplot(gs[0,j]); av=fig.add_subplot(gs[1,j],sharex=ap)
-        ap.plot(c.index,c.values,color="#12314F",lw=.9)
-        ap.fill_between(c.index,c.values,c.min(),color="#2e7d32" if up else "#c62828",alpha=.08)
-        ap.axvspan(c.index[-21],c.index[-1],color="#B8862B",alpha=.12,lw=0)
-        ap.set_title(f"#{i+1} {rr.Enstrüman} · MOMADJ {rr.MOMADJ:+.2f} · {QS[rr.Kadran].split()[0]}",fontsize=6.6,loc="left")
-        ap.text(.02,.97,f"1a {pct(rr.ret_1a)} · 12a {pct(rr.ret_12a)}",transform=ap.transAxes,fontsize=5.6,va="top",color="#333",bbox=dict(fc="white",ec="none",alpha=.8,pad=.8))
-        ap.tick_params(labelbottom=False,labelsize=5.4)
-        v=None
-        if isinstance(rr.Not,str) and rr.Not.startswith("Vekil"):
-            ps=rr.Not.split(":")[1].split()[0]; pv=R0["data"].get(ps)
-            if pv is not None: v=pv.volume.astype(float).reindex(df.index)
-        elif not (isinstance(rr.Not,str) and rr.Not.startswith("Hacimsiz")):
-            v=df.volume.astype(float)
-        if v is not None and v.notna().any():
-            v=v.where(v>0); base=v.iloc[-504:].mean(); vv=v.iloc[-252:]
-            av.bar(vv.index,vv.values/base,width=1.2,color="#8a9bb0",lw=0)
-            av.axhline(1,color="#B8862B",lw=.7,ls="--")
-            av.set_ylim(0,max(np.nanpercentile(vv.values/base,98)*1.15,1.5))
-        else:
-            av.text(.5,.5,"hacim verisi yok",transform=av.transAxes,ha="center",va="center",fontsize=5.6,color="#777")
-            av.set_yticks([])
-        av.tick_params(labelsize=5.2); av.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%m.%y"))
-        av.xaxis.set_major_locator(matplotlib.dates.MonthLocator(interval=3))
-        for a in (ap,av): a.spines[["top","right"]].set_visible(False)
-    return fig
+def gatepage():
+    """Likidite kapısı sayfası: fiyat taban/tavana kilitli enstrümanlar ayrı raporlanır."""
+    G=A[A.Kilit]
+    rows=[["Evren","Enstrüman","Son","1a","3a","Kilit gün (son 10)","5g/60g hacim","Durum"]]
+    for _,rr in G.sort_values(["Evren","Enstrüman"]).iterrows():
+        vd="—" if pd.isna(rr.VolDrain) else f"{rr.VolDrain:.2f}"
+        rows.append([rr.Evren,name(rr),lastf(rr.Son),pct(rr.ret_1a),pct(rr.ret_3a),int(rr.KilitGün),vd,rr.GateNeden or "—"])
+    story.append(Paragraph("Likidite kapısı",H1))
+    story.append(Paragraph(
+        "Fiyat taban veya tavanda kilitliyken hacim 'ilgi' ölçüsü olmaktan çıkar: işlem yokluğu ilgisizlik değil, "
+        "karşı tarafın bulunmamasıdır. Bu enstrümanlarda hacim bileşeni ve MOM hesaplanmaz, sıralamaya girmezler. "
+        "Kapı okunmadan geçilmemelidir — bu isimler genellikle en önemli olaylardır.",B))
+    if len(G)==0:
+        story.append(Paragraph("Bu koşuda kapıya takılan enstrüman yok.",S))
+    else:
+        story.append(tbl(rows,[22*mm,32*mm,17*mm,14*mm,14*mm,20*mm,20*mm,41*mm]))
+        story.append(Spacer(1,4))
+        story.append(Paragraph(
+            f"Kural: kilit günü = (açılış = yüksek = düşük = kapanış) VE (|günlük değişim| ≥ %4). "
+            f"Kapı = son 10 günde kilit ≥ 3 gün VEYA 5g ort. hacim / 60g ort. hacim < 0,25. "
+            f"%4 eşiği zorunludur: yalnız 'OHLC düz' koşulu kullanılırsa PL=F ve PA=F yanlış pozitif üretir "
+            f"(Yahoo bu serilerde gün içi aralık yerine uzlaşma fiyatı yayınlar; fiyat değişimi %0,3, hacim sıfırdır). "
+            f"Bu koşuda kapıya takılan toplam {len(G)} enstrüman.",S))
 W=182*mm
 R0=pickle.load(open("raw.pkl","rb"))
 DROPMAP={"Emtia":R0["COM"],"Tahvil / faiz":R0["BOND"],"Nasdaq 100":R0["NDX"],"BIST 30":[x+".IS" for x in R0["B30"]]}
 def ttable(t):
     sub=t if len(t)<=13 else pd.concat([t.head(8),t.tail(5)])
-    hdr=["#","Enstrüman","Son","1a","3a","6a","12a","z(getiri)","z(hacim)","MOM","MOMADJ","Kadran"]
+    hdr=["#","Enstrüman","Son","1a","3a","6a","12a","z(getiri)","z(hacim)","MOM","m (1a)","Kadran"]
     rows=[hdr]
     for i,rr in sub.iterrows():
-        rows.append([i+1,name(rr),lastf(rr.Son)]+[pct(rr[f"ret_{k}"]) for k in K]+[f2(rr.ZRET),f2(rr.ZVOL),f2(rr.MOM),f2(rr.MOMADJ),QS[rr.Kadran]])
-    wd=[7*mm,34*mm,17*mm,13*mm,13*mm,13*mm,14*mm,13.5*mm,13.5*mm,12.5*mm,14*mm,23*mm]
+        rows.append([i+1,name(rr),lastf(rr.Son)]+[pct(rr[f"ret_{k}"]) for k in K]+[f2(rr.ZRET),f2(rr.ZVOL),f2(rr.MOM),f2(rr.m_1a),QS[rr.Kadran]])
+    wd=[7*mm,34*mm,17*mm,13*mm,13*mm,13*mm,14*mm,13.5*mm,13.5*mm,12.5*mm,11*mm,25*mm]
     tb=tbl(rows,wd)
     if len(t)>13: tb.setStyle(TableStyle([("LINEBELOW",(0,8),(-1,8),1,GOLD)]))
     return tb
@@ -139,28 +134,34 @@ story.append(Paragraph("Yöntem ve Özet",H1))
 meth=[["Adım","Formül / kural"],
 ["Getiri","ret_k = P_t / P_(t−k) − 1 · k = 21/63/126/252. Getiri serilerinde: −D·Δy/100 (D: 10Y 8.5, 30Y 17, 3A 0.25)"],
 ["Hacim oranı","volratio_k = ort(hacim, son k) / ort(hacim, son 504) · sıfır hacim NaN"],
-["Getiri z-skoru","z_ret_k = kesitsel_z(winsorize(ret_k, %2, %98)), ±3 kırpma"],
-["Hacim standardizasyonu","z_vol_k = kesitsel_z(winsorize(ln volratio_k, %2, %98)), ±3 kırpma"],
-["MOM","MOM_k = z_ret_k × z_vol_k"],
-["Bileşik","0.40·1a + 0.30·3a + 0.20·6a + 0.10·12a (MOM, MOMADJ, ZRET, ZVOL)"],
-["MOMADJ","MOMADJ_k = z_ret_k × exp(clip(z_vol_k, ±2)/2) · çarpan 0.37x–2.72x · sıralama bununla"]]
+["Getiri normalizasyonu","Sıra tabanlı normal skor (van der Waerden): z = Φ⁻¹((sıra − 3/8)/(n + 1/4)). Ham getiri sağa çarpıktır; z-skor bu çarpıklığı gidermez. Sıra dönüşümü tasarım gereği normal ve uçlara bağışık — winsorize yok."],
+["Hacim normalizasyonu","z_vol_k = van der Waerden(ln volratio_k), evren içinde"],
+["Likidite kapısı","kilit = (O=H=L=C) ve |değişim| ≥ %4; kapı = son 10 günde ≥ 3 kilit VEYA 5g/60g hacim < 0,25. Kapıya takılanlarda hacim bileşeni ve MOM hesaplanmaz."],
+["Hacim çarpanı","m(z) = (1 − 0,50) + 2·0,50·Φ(z) → [0,506 ; 1,494]. Daima pozitif: hacim işareti çeviremez. E[m] = 1,000, oran 3,0x."],
+["Momentum","MOM_k = z_ret_k × m(z_vol_k) · tek metrik"],
+["Bileşik","0,40·1a + 0,30·3a + 0,20·6a + 0,10·12a (MOM, ZRET, ZVOL)"]]
 story.append(tbl(meth,[32*mm,150*mm]))
-nq4=int(((A.MOM>0)&(A.ZRET<0)).sum()); nm=int(A.MOM.notna().sum()); q1=(A.Kadran.str.startswith("Q1")).sum()
-t5=", ".join(f"{rr.Enstrüman} ({rr.Evren}, {rr.MOMADJ:+.2f})" for _,rr in A.head(5).iterrows())
+sc=A[A.MOM.notna()]; nk=int((np.sign(sc.MOM)!=np.sign(sc.ZRET)).sum()); ns=len(sc)
+q1=(A.Kadran.str.startswith("Q1")).sum(); ng=int(A.Kilit.sum())
+ml=pd.concat([v[[f"m_{k}" for k in K]] for v in U.values()]).stack().dropna()
+t5=", ".join(f"{rr.Enstrüman} ({rr.Evren}, {rr.MOM:+.2f})" for _,rr in A.head(5).iterrows())
 story.append(Spacer(1,4))
-story.append(Paragraph(f"<b>Özet.</b> {sum(len(t) for t in U.values())} satır, 5 evren. En yüksek 5 MOMADJ: {t5}. Tüm evrenlerde Q1 payı %{q1/len(A)*100:.0f} ({q1}/{len(A)}); hacimli satırların %{nq4/nm*100:.0f}'inde ({nq4}/{nm}) getiri negatifken ham MOM pozitif, bu yüzden sıralama MOMADJ ile.",B))
+story.append(Paragraph(f"<b>Özet.</b> {sum(len(t) for t in U.values())} satır, 5 evren. En yüksek 5 MOM: {t5}. Tüm evrenlerde Q1 payı %{q1/len(A)*100:.0f} ({q1}/{len(A)}). Çarpan bu koşuda {ml.min():.3f}–{ml.max():.3f}, ortalama {ml.mean():.4f} — tasarım gereği 1,000. Likidite kapısına takılan {ng} enstrüman ayrı sayfada. MOM işareti ZRET ile %{(nk/ns*100):.1f} uyuşmuyor ({nk}/{ns}), bileşik toplamdan kaynaklanır.",B))
 story.append(Paragraph("Evren özeti",H2))
-rows=[["Evren","Adet","Öne çıkan üç (MOMADJ)","En zayıf","Q1","Q3"]]
+rows=[["Evren","Adet","Öne çıkan üç (MOM)","En zayıf","Q1","Q3"]]
 for k,t in U.items():
-    rows.append([k,len(t),", ".join(f"{a} {b:+.2f}" for a,b in zip(t.Enstrüman.head(3),t.MOMADJ.head(3))),f"{t.Enstrüman.iloc[-1]} {t.MOMADJ.iloc[-1]:+.2f}",f"%{t.Kadran.str.startswith('Q1').mean()*100:.0f}",f"%{t.Kadran.str.startswith('Q3').mean()*100:.0f}"])
+    w=t[t.MOM.notna()].iloc[-1]  # likidite kilidi satırları skorlanmaz; en zayıf skorlanan isim seçilir
+    rows.append([k,len(t),", ".join(f"{a} {b:+.2f}" for a,b in zip(t.Enstrüman.head(3),t.MOM.head(3))),f"{w.Enstrüman} {w.MOM:+.2f}",f"%{t.Kadran.str.startswith('Q1').mean()*100:.0f}",f"%{t.Kadran.str.startswith('Q3').mean()*100:.0f}"])
 story.append(tbl(rows,[24*mm,11*mm,79*mm,40*mm,14*mm,14*mm]))
 def hline(k,t):
-    q3=t.Kadran.str.startswith("Q3").mean(); top=t.iloc[0]; bot=t.iloc[-1]
-    x=f"{k}: lider {top.Enstrüman} ({top.MOMADJ:+.2f}, {QS[top.Kadran]})"
+    q3=t.Kadran.str.startswith("Q3").mean(); top=t.iloc[0]; bot=t[t.MOM.notna()].iloc[-1]
+    x=f"{k}: lider {top.Enstrüman} ({top.MOM:+.2f}, {QS[top.Kadran]})"
     if top.Olay: x+=f", ancak olay işaretli (1a %{top.ret_1a*100:+.0f}, 12a %{top.ret_12a*100:+.0f})"
     q2=t.head(5); q2=q2[q2.Kadran.str.startswith("Q2")]
     if len(q2): x+=f"; ilk beşte hacim teyidi olmayan: {', '.join(q2.Enstrüman)}"
-    x+=f"; en zayıf {bot.Enstrüman} ({bot.MOMADJ:+.2f})"
+    x+=f"; en zayıf {bot.Enstrüman} ({bot.MOM:+.2f})"
+    g=int(t.Kilit.sum())
+    if g: x+=f"; {g} enstrüman likidite kapısında, skorlanmadı"
     if q3>=.35: x+=f"; payların %{q3*100:.0f}'i Q3'te, hacimli satış belirgin"
     if len(t)<15: x+="; küçük evren, skorlar gürültülü"
     return x+"."
@@ -173,16 +174,15 @@ if P:
     txt=f"Taban {P['tarih']}. Q1 payı %{P['q1'][0]*100:.0f} → %{P['q1'][1]*100:.0f}. Kadran değiştiren {len(ch)} satır"
     if ch: txt+=": "+", ".join(f"{n} ({e}) {QS[a][:2]}→{QS[b][:2]}" for e,n,a,b in ch[:30])+(" …" if len(ch)>30 else "")
     txt+=". İlk beşten düşenler: "+(", ".join(f"{n} ({e})" for e,n in P["out5"]) or "yok")+"."
+    ng=r.get("newgate",[])
+    if ng: txt+=f" Kapıya yeni takılan: {', '.join(n+' ('+e+')' for e,n in ng)}."
     story.append(Paragraph(txt,B))
 else:
     story.append(Paragraph("Önceki koşu kaydı yok; karşılaştırma bir sonraki koşuda başlar.",B))
 story.append(Spacer(1,4))
-story.append(Paragraph("Q1 teyitli yükseliş (+/+) · Q2 teyitsiz yükseliş (+/−) · Q3 teyitli düşüş (−/+) · Q4 ilgisiz düşüş (−/−), ham MOM burada pozitif çıkar ve yanıltır · * olay işareti (1a ≥ %30, 12a < 0) · † vekil ETF hacmi.",S))
+story.append(Paragraph("Q1 teyitli yükseliş (+/+) çarpan ≈1,5 büyük pozitif · Q2 teyitsiz yükseliş (+/−) çarpan ≈0,5 küçük pozitif, uyarı · Q3 teyitli düşüş (−/+) çarpan ≈1,5 büyük negatif, dağıtım · Q4 ilgisiz düşüş (−/−) çarpan ≈0,5 küçük negatif · likidite kilidi skorlanmaz · * olay işareti (1a ≥ %30, 12a < 0) · † vekil ETF hacmi.",S))
 story.append(PageBreak())
-story.append(Paragraph("Evren liderleri · MOMADJ ilk 3",H1))
-story.append(Paragraph("Üst panel: son 12 ay fiyat, altın bant son 1 ay. Alt panel: günlük hacim / 504 günlük ortalama, kesikli çizgi = 1 (ortalama). Vekil hacimli emtialarda ETF hacmi gösterilir.",S))
-for k,t in U.items():
-    story.append(KeepTogether([Paragraph(k,H2),img(topcards(t),W)]))
+gatepage()
 story.append(PageBreak())
 for k,t in U.items():
     story.append(Paragraph(f"{k} · {len(t)} enstrüman",H1))
@@ -196,27 +196,28 @@ for k,t in U.items():
     story.append(PageBreak())
 # son sayfa
 story.append(Paragraph("Evrenler arası karşılaştırma",H1))
-rows=[["Evren","Adet","Medyan 1a","Medyan 12a","Q1","Q2","Q3","Q4","Hacimsiz","Lider (MOMADJ)"]]
+rows=[["Evren","Adet","Medyan 1a","Medyan 12a","Q1","Q2","Q3","Q4","Kapı","Hacimsiz","Lider (MOM)"]]
 for k,t in U.items():
     c=t.Kadran.str[:2].value_counts()
-    rows.append([k,len(t),pct(t.ret_1a.median()),pct(t.ret_12a.median())]+[f"%{c.get(q,0)/len(t)*100:.0f}" for q in ["Q1","Q2","Q3","Q4","Ha"]]+[f"{t.Enstrüman.iloc[0]} {t.MOMADJ.iloc[0]:+.2f}"])
-story.append(tbl(rows,[26*mm,12*mm,17*mm,17*mm,12*mm,12*mm,12*mm,12*mm,15*mm,47*mm]))
-story.append(Paragraph("Tüm evrenlerde en yüksek 15 MOMADJ",H2))
-rows=[["#","Enstrüman","Evren","1a","12a","ZRET","ZVOL","MOM","MOMADJ","Kadran"]]
+    ld=t[t.MOM.notna()].iloc[0]
+    rows.append([k,len(t),pct(t.ret_1a.median()),pct(t.ret_12a.median())]+[f"%{c.get(q,0)/len(t)*100:.0f}" for q in ["Q1","Q2","Q3","Q4","Li","Ha"]]+[f"{ld.Enstrüman} {ld.MOM:+.2f}"])
+story.append(tbl(rows,[25*mm,11*mm,16*mm,16*mm,11*mm,11*mm,11*mm,11*mm,11*mm,14*mm,45*mm]))
+story.append(Paragraph("Tüm evrenlerde en yüksek 15 MOM",H2))
+rows=[["#","Enstrüman","Evren","1a","12a","ZRET","ZVOL","MOM","m (1a)","Kadran"]]
 for i,(_,rr) in enumerate(A.head(15).iterrows(),1):
-    rows.append([i,name(rr),rr.Evren,pct(rr.ret_1a),pct(rr.ret_12a),f2(rr.ZRET),f2(rr.ZVOL),f2(rr.MOM),f2(rr.MOMADJ),QS[rr.Kadran]])
-story.append(tbl(rows,[7*mm,32*mm,24*mm,15*mm,15*mm,14*mm,14*mm,14*mm,16*mm,31*mm]))
-story.append(Paragraph("Skorlar kendi evreni içinde standardizedir; bu liste yalnızca tarama amaçlıdır, evrenler arası büyüklük kıyası yapılmaz. BIST 30 payları BIST 100 içinde de yer alır ve farklı skor taşır.",S))
+    rows.append([i,name(rr),rr.Evren,pct(rr.ret_1a),pct(rr.ret_12a),f2(rr.ZRET),f2(rr.ZVOL),f2(rr.MOM),f2(rr.m_1a),QS[rr.Kadran]])
+story.append(tbl(rows,[7*mm,32*mm,24*mm,15*mm,15*mm,14*mm,14*mm,14*mm,13*mm,34*mm]))
+story.append(Paragraph("Skorlar kendi evreni içinde hesaplanmıştır; bu liste yalnızca tarama amaçlıdır, evrenler arası büyüklük kıyası yapılmaz. BIST 30 payları BIST 100 içinde de yer alır ve farklı skor taşır.",S))
 story.append(Paragraph("Veri notları ve kısıtlar",H2))
 notes=[f"Veri tarihi {DS}: bugünün kısmi barları atıldı. Minimum 505 bar. Düşenler: "+", ".join(f"{s.replace('.IS','')} ({w})" for s,w in r["dropped"])+".",
 "Getiri serileri (^TNX, ^TYX, ^IRX) −D·Δy ile fiyat-eşdeğer getiriye çevrildi; hacimsiz, vekil bağlanmadı. Uluslararası tahviller ETF ile temsil ediliyor; Türkiye için likit vekil yok (EVDS/FRED/Bloomberg gerekli).",
-f"Tahvil evreni {len(U['Tahvil / faiz'])} enstrüman: winsorize bu büyüklükte zayıf kalır, ±3 kırpma uygulandı; skorlar gürültülüdür.",
-f"BIST 100 resmi liste değil, {r['nbroad']} paylık evrenden likidite ile seçildi. BIST 30 listesi src/fetch.py içinde; çeyrek revizyonlarında (Oca/Nis/Tem/Eki) güncellenmeli.",
-"Sürekli vadeli seriler spot kotasyondan farklıdır. Kesitsel çalışmadır, backtest değildir.",
-"Kesitsel z-skorlar tarihler arasında doğrudan karşılaştırılmaz; haftalık izleme kadran değişimleri üzerinden yapılır."]
+f"Tahvil evreni {len(U['Tahvil / faiz'])} enstrüman; küçük evrenlerde sıra skoru gürültülüdür.",
+f"BIST 100 resmi liste değil, {r['nbroad']} paylık evrenden likidite ile seçildi. BIST 30 listesi src/fetch.py içinde; çeyrek revizyonlarında (Oca/Nis/Tem/Eki) güncellenmeli — 01.10.2026'da TRMET giriyor, DSTKF çıkıyor.",
+"Sürekli vadeli seriler spot kotasyondan farklıdır. Kesitsel çalışmadır, backtest değildir. Risk düzeltmesi yok: oynaklık seviyesi getiriyle eşit ağırlıkta sayılmaz.",
+"Kesitsel skorlar tarihler arasında doğrudan karşılaştırılmaz; haftalık izleme kadran değişimleri üzerinden yapılır."]
 for n in notes: story.append(Paragraph("• "+n,B))
 story.append(Spacer(1,8))
 story.append(Paragraph("<b>Sorumluluk reddi.</b> Bu rapor yalnızca bilgilendirme amaçlıdır; yatırım tavsiyesi, alım-satım önerisi veya teklif niteliği taşımaz. Veriler ücretsiz kaynaklardan alınmıştır, doğruluğu garanti edilmez. Karar öncesi veriler birincil kaynaklardan teyit edilmelidir.",S))
-out=os.environ.get("OUT_DIR","out")+f"/Momentum_Calismasi_{DATE.strftime('%Y-%m-%d')}.pdf"
+out=os.environ.get("OUT_DIR","out")+f"/Momentum_Calismasi_v3_{DATE.strftime('%Y-%m-%d')}.pdf"
 SimpleDocTemplate(out,pagesize=A4,leftMargin=14*mm,rightMargin=14*mm,topMargin=21*mm,bottomMargin=14*mm,title="Momentum Çalışması").build(story,onFirstPage=band,onLaterPages=band)
 print(out)
