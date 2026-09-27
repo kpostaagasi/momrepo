@@ -27,6 +27,7 @@ Her pazartesi 09:00 (TR) cuma kapanışıyla PDF + Excel üretir, önce **yalnı
 5. Actions → Momentum - haftalık üretim → Run workflow ile ilk testi yap.
 
 ## Bakım
+- Metodoloji ve ekip kullanım notları: `PROMPT.md` (Bölüm A asistan promptu, Bölüm B yorumlama kuralları).
 - BIST 30 listesi `src/fetch.py` içinde (`B30`); çeyrek revizyonlarında güncelle (Oca/Nis/Tem/Eki). 01.10.2026'da TRMET giriyor, DSTKF çıkıyor.
 - BIST 100 geniş evreni `BROAD`; yeni halka arzlar eklenmeli.
 - Nasdaq 100 listesi her koşuda api.nasdaq.com'dan çekilir; başarısızsa `state/ndx.txt` kullanılır.
