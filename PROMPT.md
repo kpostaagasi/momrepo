@@ -40,7 +40,7 @@ Beş evren, her biri **kendi içinde** standardize edilir:
 | Tahvil / faiz | ^TNX, ^TYX, ^IRX + IGLT.L, EXHC.DE, 1482.T, XGB.TO, CBON, TLT, IEF |
 | Nasdaq 100 | Endeks bileşenleri |
 | BIST 100 | Geniş BIST evreninden 60 günlük TL işlem hacmine göre en likit 100 pay |
-| BIST 30 | AEFES, AKBNK, ASELS, ASTOR, BIMAS, DSTKF, EKGYO, ENKAI, EREGL, FROTO, GARAN, GUBRF, ISCTR, KCHOL, KRDMD, MGROS, PETKM, PGSUS, SAHOL, SASA, SISE, TAVHL, TCELL, THYAO, TOASO, TRALT, TTKOM, TUPRS, VAKBN, YKBNK |
+| BIST 30 | AEFES, AKBNK, ASELS, ASTOR, BIMAS, EKGYO, ENKAI, EREGL, FROTO, GARAN, GUBRF, ISCTR, KCHOL, KRDMD, MGROS, PETKM, PGSUS, SAHOL, SASA, SISE, TAVHL, TCELL, THYAO, TOASO, TRALT, TRMET, TTKOM, TUPRS, VAKBN, YKBNK |
 
 ## 3. Hacim veri kalitesi
 
@@ -213,7 +213,7 @@ Haftalık, cuma kapanışı sonrası. Kesitsel skorlar aynı gün ve aynı evren
 1. **Tek metrik MOM.** Eski MOM_ADJ ayrımı kaldırıldı. Bir çıktı hâlâ iki metrik gösteriyorsa eski sürümdür.
 2. **Q2 bir uyarıdır.** Getiri güçlü ama hacim zayıfsa ralli katılımla teyit edilmemiştir. 21 Ağustos koşusunda altın Q2'ydi; 15 Eylül'de Q4'e, 25 Eylül'de Q3'e düştü ve fiyat bu sürede %7 geriledi.
 3. **Q3 pozisyon azaltma sinyalidir**, sadece zayıflık değil — hacimli satış dağıtım anlamına gelir.
-4. **Likidite kilidi kategorisi okunmadan geçilmez.** Buradaki isimler skorlanmadıkları için sıralamalarda görünmez, ama genellikle en önemli olaylardır. 25 Eylül 2026 koşusunda BIST 100'de 13, BIST 30'da DSTKF.
+4. **Likidite kilidi kategorisi okunmadan geçilmez.** Buradaki isimler skorlanmadıkları için sıralamalarda görünmez, ama genellikle en önemli olaylardır. 25 Eylül 2026 koşusunda BIST 100'de 13 isim vardı, BIST 30'da yoktu — DSTKF o gün BIST 30'dan çıkarılmış, TRMET girmişti.
 5. **Tek seferlik olaylara dikatt.** 1 aylık getirisi +%100 civarında, 12 aylık getirisi negatif olan bir isim momentum değil olay taşır. 15 Eylül 2025 koşusunda MARTI bu profille 1. sıradaydı (MOM_ADJ +6,73); on gün sonra taban kilidine girdi ve −%52 geldi.
 6. **Evrenler arası skor kıyaslaması yapmayın.** BIST 100'de +2,00 ile Emtia'da +2,00 aynı şey değildir.
 7. **Likidite kilidi artık sessizce düşmez.** 505-bar filtresi kapıdan sonra çalışır; DSTKF gibi kısa seriler kapı sayfasında raporlanır. Yine de bir isim kaybolursa ilk bakılacak yer filtre sırasıdır.
@@ -242,7 +242,7 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 ## Bilinen sınırlar
 
 - **Uluslararası 10 yıllık getiriler** günlük seri olarak ücretsiz kaynaklardan çekilemiyor. İngiltere, Almanya, Japonya, Kanada ve Çin tahvil ETF'leriyle temsil ediliyor ve **ETF fiyatı getiriyle ters yönlüdür**. Türkiye için likit ETF vekili yok. Çözüm: TCMB EVDS + FRED API anahtarları veya Bloomberg'den GT{PARA}10Y CSV export'u.
-- **BIST 100 evreni** resmi bileşen listesi değil, likidite ile proxy'leniyor. BIST 30 ise resmi listedir ve çeyrek revizyonlarla (Oca/Nis/Tem/Eki) elle güncellenir — 01.10.2026'da TRMET giriyor, DSTKF çıkıyor.
+- **BIST 100 evreni** resmi bileşen listesi değil, likidite ile proxy'leniyor. Bu nedenle 01.10.2026'daki resmi 27 şirketlik BIST 100 revizyonu `BROAD` listesine elle uygulanmaz — likidite sıralaması zaten üyelik değişimini yansıtır; elle uygulamak yalnızca likit isimleri (KTLEV, ODINE, DAPGM, SKBNK, MIATK, KUYAS, RALYH, GENIL, IZENR, GRTHO) atarken halka arzı yeni payları da eklemeye çalışırdı, bunların çoğunda 3 yıllık seri henüz dolmadığı için 505-bar filtresinde zaten düşerler. BIST 30 ise resmi listedir ve çeyrek revizyonlarla (Oca/Nis/Tem/Eki) elle güncellenir — 01.10.2026'da TRMET girdi, DSTKF çıktı.
 - **Risk düzeltmesi yok.** %70 oynaklıktaki bir isimde +%20 ile %25 oynaklıktaki bir isimde +%20 aynı sinyal sayılıyor. Getiriyi `oynaklık × √k` ile bölmek sıradaki doğal adım.
 - **İşaret uyuşmazlığı ~%2.** Pencere başına çarpım her pencerede işareti korur, ama bileşik skor dört pencerenin ağırlıklı toplamı olduğu için bileşik MOM'un işareti bileşik ZRET'ten farklı çıkabilir. Yalnızca ZRET ≈ 0 olduğunda görülür ve ekonomik anlamı vardır: düşüşler teyitli, yükselişler teyitsiz. Kesin garanti isteniyorsa çarpan bileşik düzeyde uygulanır (`MOM = ZRET × m(ZVOL)`), ama pencere içi getiri-hacim eşleşmesi kaybolur.
 - Bu **kesitsel** bir çalışmadır, zaman serisi backtest'i değildir.
@@ -253,9 +253,9 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 |---|---|---|
 | v1 | Basit getiri → winsorize → z-skor; MOM = z×z; sıralama MOM_ADJ = z × e^(z/2) | İlk kurulum |
 | v2 | Sıra → normal skor (van der Waerden); winsorize kaldırıldı; likidite kapısı eklendi | JB testi 8 kombinasyonun 7'sinde normalliği reddetti; DSTKF taban kilidinde "ilgisiz düşüş" olarak sınıflanıyordu |
-| **v3** | **Hacim çarpanı m(z) = (1−B) + 2B·Φ(z), daima pozitif; MOM_ADJ kaldırıldı; kapı 505-bar filtresinden önce çalışıyor** | **Hacim yön taşımamalı; işaret tuzağı yapısal olarak çözüldü, tek metriğe indi** |
+| **v3** | **Hacim çarpanı m(z) = (1−B) + 2B·Φ(z), daima pozitif; MOM_ADJ kaldırıldı; kapı 505-bar filtresinden önce çalışıyor; BIST 30 listesi 01.10.2026 revizyonuna güncellendi** | **Hacim yön taşımamalı; işaret tuzağı yapısal olarak çözüldü, tek metriğe indi. BIST 30 resmi listedir, revizyon elle uygulanır** |
 
-## Doğrulama — 25 Eylül 2026 referans koşusu (v3)
+## Doğrulama — 25 Eylül 2026 referans koşusu (v3, BIST 30 = 01.10.2026 listesi)
 
 **Evren büyüklükleri:** Emtia 21 · Tahvil 10 · Nasdaq 100 96 · BIST 100 100 · BIST 30 30 · toplam 257
 
@@ -263,11 +263,11 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 
 | # | Enstrüman | Evren | MOM | z(getiri) | m (1a) | Kadran |
 |---|---|---|---|---|---|---|
-| 1 | ENERY | BIST 100 | +2,46 | +1,95 | 1,35 | Q1 |
+| 1 | ENERY | BIST 100 | +2,47 | +1,95 | 1,36 | Q1 |
 | 2 | TUPRS | BIST 30 | +2,27 | +2,00 | 1,15 | Q1 |
 | 3 | Çin devlet ETF | Tahvil / faiz | +2,19 | +1,55 | 1,41 | Q1 |
-| 4 | TUPRS | BIST 100 | +2,05 | +1,83 | 1,12 | Q1 |
-| 5 | TKFEN | BIST 100 | +2,04 | +2,28 | **0,91** | **Q2** |
+| 4 | TUPRS | BIST 100 | +2,07 | +1,83 | 1,13 | Q1 |
+| 5 | TKFEN | BIST 100 | +2,06 | +2,28 | **0,92** | **Q2** |
 
 **Evren liderleri ve en zayıfları:**
 
@@ -276,10 +276,10 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 | Emtia | Yulaf +1,18 | Domuz −1,97 |
 | Tahvil / faiz | Çin devlet ETF +2,19 | ABD 30Y getiri −1,55 |
 | Nasdaq 100 | META +1,90 | INTU −2,09 |
-| BIST 100 | ENERY +2,46 | DAPGM −2,01 |
-| BIST 30 | TUPRS +2,27 | SASA −1,76 |
+| BIST 100 | ENERY +2,47 | DAPGM −2,02 |
+| BIST 30 | TUPRS +2,27 | SASA −2,01 |
 
-**Likidite kapısı:** BIST 100'de 13 isim (KTLEV, TERA, PASEU, SELEC, ODINE, IEYHO, MIATK, LIDER, KUYAS, RALYH, MAGEN, GRTHO, BSOKE), BIST 30'da 1 isim (DSTKF, 7 kilitli gün, 5g/60g hacim 0,00).
+**Likidite kapısı:** BIST 100'de 13 isim (KTLEV, TERA, PASEU, SELEC, ODINE, IEYHO, MIATK, LIDER, KUYAS, RALYH, MAGEN, GRTHO, BSOKE), BIST 30'da **0** — DSTKF 01.10.2026 listesinden çıkarıldığı için artık raporlanmıyor. TRMET yeni girdi: 756 bar, Q2 teyitsiz yükselişte +0,44.
 
 **Kadran dağılımı:**
 
@@ -288,16 +288,16 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 | Emtia | 5 | 6 | 3 | 5 | 0 | 2 |
 | Tahvil / faiz | 2 | 2 | 1 | 2 | 0 | 3 |
 | Nasdaq 100 | 22 | 26 | 27 | 21 | 0 | 0 |
-| BIST 100 | 22 | 34 | 20 | 11 | 13 | 0 |
-| BIST 30 | 4 | 10 | 11 | 4 | 1 | 0 |
+| BIST 100 | 25 | 29 | 20 | 13 | 13 | 0 |
+| BIST 30 | 4 | 10 | 11 | 5 | 0 | 0 |
 
 **Kontrol noktaları:**
-- Çarpan: min 0,506 · max 1,494 · **ortalama 1,005** · medyan 1,000 (tasarım gereği 1,000'e çok yakın)
+- Çarpan: min 0,506 · max 1,494 · **ortalama 1,003** · medyan 1,000 (tasarım gereği 1,000'e çok yakın)
 - `zvol_12a` standart sapması 0,92 – 0,99 (≈1,0)
 - Emtiada likidite kapısına takılan **0** isim (PL=F ve PA=F yanlış pozitif vermedi)
-- MOM/ZRET işaret uyuşmazlığı **%2,1** (5/243) — sınırın altında
-- Genel Q1 payı %21
-- **TKFEN vakası formülün doğru çalıştığının testidir:** getiri z-skoru +2,28 ile evrenin en yükseği, ama çarpan 0,91 olduğu için skoru 2,04'e iniyor ve Q2'de kalıyor. Eski formülde (z×z) bu isim daha da düşük, negatif MOM alıyordu.
+- MOM/ZRET işaret uyuşmazlığı **%1,6** — sınırın altında
+- Genel Q1 payı %23
+- **TKFEN vakası formülün doğru çalıştığının testidir:** getiri z-skoru +2,28 ile evrenin en yükseği, ama çarpan 0,92 olduğu için skoru 2,06'e iniyor ve Q2'de kalıyor. Eski formülde (z×z) bu isim daha da düşük, negatif MOM alıyordu.
 
 **Önceki koşuya (18.09.2026) göre:** Q1 payı %23 → %21 · 60 satır kadran değiştirdi · ilk beşten düşenler: Kakao, Benzin RBOB, LITE, MU, MRVL, SELEC, DMRGD · kapıya yeni takılan: DSTKF · olay işaretli: META (1a +%30,6 / 12a −%0,8).
 
