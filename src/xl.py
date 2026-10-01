@@ -40,8 +40,8 @@ lines=[("Getiri–Hacim Momentum Çalışması",""),("Veri tarihi",DATE),("Kayna
 ]
 for v,names in prox: lines.append((", ".join(names),v))
 lines+=[("Getiri serileri","^TNX, ^TYX, ^IRX hacimsizdir (vekil bağlanmaz)"),("",""),("EVREN NOTLARI",""),
-("BIST 30","Borsa İstanbul 1 Tem–30 Eyl 2026 dönemi bileşenleri, 30 pay (TRALT dahil). 1 Ekim 2026'da TRMET girip DSTKF çıkacak — liste çeyrek revizyonlarında (Oca/Nis/Tem/Eki) güncellenmeli."),
-("BIST 100",f"Resmi liste değil: {r['nbroad']} paylık geniş evrenden 60 günlük ort. TL işlem hacmine göre ilk 100"),
+("BIST 30","Borsa İstanbul 1 Eki–31 Ara 2026 dönemi bileşenleri, 30 pay (01.10.2026 revizyonu: TRMET girdi, DSTKF çıktı). Liste çeyrek revizyonlarında (Oca/Nis/Tem/Eki) güncellenmeli."),
+("BIST 100",f"Resmi liste değil: {r['nbroad']} paylık geniş evrenden 60 günlük ort. TL işlem hacmine göre ilk 100. Geniş evren 01.10.2026 resmi BIST 100 revizyonunda girenleri içerir."),
 ("Nasdaq 100","Bileşen listesi: api.nasdaq.com (nasdaq100), çalışma günü"),
 ("Alt küme notu","BIST 30, BIST 100'ün alt kümesidir; sıra skorları evren içinde hesaplandığı için aynı hissenin iki sekmedeki skoru farklıdır."),
 ("Evrenler arası","Skorlar evrenler arasında karşılaştırılamaz; TUMU sekmesi yalnızca filtreleme içindir."),

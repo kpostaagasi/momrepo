@@ -1,4 +1,4 @@
-# Getiri–Hacim Momentum Raporu — Ekip Promptu (v3)
+# Getiri–Hacim Momentum Raporu — Ekip Promptu (v3, final)
 
 Bu dosya, **v1 promptunun yerini alır.** İki bölümden oluşur:
 
@@ -136,32 +136,32 @@ Ayrıca raporlanacak yardımcı büyüklükler: `ZRET` ve `ZVOL` (aynı ağırl�
 
 ## 6. PDF rapor
 
-**Kural: önce grafik, sonra tablo, yazı minimum.**
+**Kural: önce grafik, sonra tablo, yazı minimum. Hedef 7 sayfa.** Detay tablolar Excel'de durur; PDF görsel özettir.
 
 **Sayfa 1 — Yöntem + Özet**
-1. Yöntem tablosu: getiri · hacim oranı · getiri normalizasyonu · hacim normalizasyonu · likidite kapısı · hacim çarpanı · momentum · bileşik. Formüller açık yazılır.
-2. Özet paragrafı: tüm evrenlerde en yüksek 5 MOM, genel Q1 payı, çarpan aralığı ve ortalaması, kapı sayısı, işaret uyuşmazlığı
-3. Evren tablosu: evren, adet, öne çıkan üç (skorla), en zayıf, Q1 payı, Q3 payı
-4. "Öne çıkanlar": evren liderleri ve dikkat çeken kadran değişimleri, 4–5 cümle
-5. Kadran tanımları: tek satır dipnot
+1. Yöntem tablosu, **5 satır**: getiri ve hacim · normalizasyon · hacim çarpanı · momentum · likidite kapısı. Formüller açık ama gerekçeler Excel'e bırakılır.
+2. Özet paragrafı: birleşik sıralamada en yüksek 5 MOM, genel Q1 payı
+3. Evren tablosu: evren, adet, öne çıkan üç (skorla), en zayıf, Q1 payı, Q3 payı, medyan 1a getiri
+4. "Öne çıkanlar": evren liderleri, likidite kapısına takılan sayı, tahvilde OHLC sayfası olmama gerekçesi
+5. Excel'e yönlendiren tek satır dipnot
 
-**Her evren için bir sayfa**, bu sırayla:
-1. Yan yana iki grafik — kadran saçılımı ve bileşik MOM yatay çubuk
-2. Altında pencere bazlı MOM ısı haritası
-3. En altta tablo: en iyi 8 + en kötü 5 (enstrüman, son, 1a/3a/6a/12a getiri, z(getiri), z(hacim), MOM, **m (1a)**, kadran)
-4. Kadran dağılımı: tek satır dipnot
+**Sayfa 2 — Momentum liderleri, tüm evrenler (OHLC)**
+Birleşik sıralamada en yüksek MOM'lu 10 varlığın günlük mum + hacim grafiği, 2 sütun × 5 satır. Aynı sembol birden çok evrende yer alıyorsa (BIST 30 ⊂ BIST 100) yüksek skorlu kaydı tutulur; likidite kapısına takılanlar listeye giremez. Tahvil evreni bu sayfada da yer almaz (aşağıdaki gerekçe).
 
-**Likidite kapısı sayfası** — kapıya takılan enstrümanlar: evren, son, 1a, 3a, kilit gün sayısı, 5g/60g hacim oranı, durum açıklaması.
+**Sayfa 3–6 — Evren bazlı OHLC sayfaları**
+Emtia · Nasdaq 100 · BIST 100 · BIST 30, her biri için o evrenin en yüksek MOM'lu 10 varlığı, aynı panel düzeniyle. Altta tek satır kadran dağılımı.
 
-**Son sayfa** — evrenler arası karşılaştırma, tüm evrenlerde en yüksek 15 MOM, veri notları ve kısıtlar, sorumluluk reddi.
+**Tahvil evreni için OHLC sayfası yapılmaz.** Uluslararası bacaklar ETF vekilleriyle temsil edildiği için mum grafiği getiriyi değil ters yönlü fiyatı gösterir; yanlış okumaya açıktır. Tahvil evreni özet tablosunda, kadran haritasında ve Excel'de yer alır.
 
-**Grafik şartnamesi**
+**Panel şartnamesi (tüm OHLC sayfalarında ortak)**
+Başlıkta sıra no · sembol · evren · son fiyat; başlığın altında 1a/3a/12a getiriler; sağ üstte MOM, çarpan m ve kadran rozeti; SMA 50/100/200; son kapanış yatay çizgisi; altta hacim şeridi ve son gün hacmi. Fiyat aralığı 3 katı aşan panellerde **logaritmik ölçek** (aksi halde erken dönem okunmaz hale gelir; tick etiketleri düz sayı olarak biçimlenir, 3×10² gibi gösterim kabul edilmez). Efsane panel başına değil, **figür düzeyinde tek sefer** verilir — panel içi efsane fiyat hareketinin üstünü kapatır. Figür en/boy oranı ≈ 1,0.
 
-| Grafik | Özellik |
-|---|---|
-| Kadran saçılımı | x = ZRET, y = ZVOL, renk = MOM (RdYlGn, sıfır merkezli norm), Q1 ve Q3 bölgeleri hafif gölgeli, eksenler sıfırda çizgili, en uç 12 nokta etiketli, kadran isimleri köşelerde. y ekseni etiketi çarpan aralığını belirtir |
-| Bileşik MOM çubuk | Yatay, en iyi/en kötü 10, pozitif yeşil negatif kırmızı, uçlarda değer etiketi, x ekseni etiketinde formül. **Skorlanmayan satırlar (likidite kilidi, hacimsiz) grafiğe girmez** — çubuk çizemeyen boş etiketli satır olarak görünürler |
-| Isı haritası | Satır = en iyi 9 + en kötü 9, sütun = 4 pencere, hücrede sayı, simetrik renk ölçeği |
+Mumlar **düzeltilmiş** OHLC ile çizilir: açılış/yüksek/düşük, düzeltilmiş kapanışla aynı faktörle (`adjclose / close`) ölçeklenir. Aksi halde temettü öncesi barlarda gövde ile kapanış ayrışır ve likidite kapısındaki O=H=L=C eşitliği bozulur. Vekil hacim bağlanan emtialarda hacim şeridi de vekil ETF hacmini gösterir.
+
+**Sayfa 7 — Kadran haritası + likidite kapısı**
+Beş evrenin getiri/hacim saçılımı 3×2 ızgarada küçük çoklu olarak; altıncı hücrede kadran açıklaması ve yatay renk skalası. Altında likidite kapısına takılanların tablosu: enstrüman, evren, son, 1a, 3a, kilit gün, 5g/60g hacim, durum. Sayfa sonunda sorumluluk reddi.
+
+**Çıkarılanlar (v3 yalın düzen).** Evren başına ısı haritası, evren başına yatay çubuk grafik, evren başına 13 satırlık detay tablo, evrenler arası karşılaştırma sayfası ve en yüksek 15 MOM tablosu rapordan kaldırılmıştır. Tamamı Excel'de mevcuttur.
 
 **Biçim:** A4 dikey, DejaVu Sans (Türkçe karakterler için zorunlu), lacivert `#12314F` üst bant, altın `#B8862B` ayraç, tablo gövdesi 6,1–6,7 punto, üstbilgide veri tarihi, altbilgide sayfa numarası ve "Yatırım tavsiyesi değildir".
 
@@ -187,10 +187,11 @@ Veri tarihini serinin **son barından türet**, sabit kodlama.
 - Çarpan aralığı [0,506 ; 1,494], **ortalaması 1,000** mu — değilse Φ dönüşümü yanlış
 - Vekil bağlanan enstrümanlarda hacim kolonları dolu mu — boşsa tarih yuvarlama atlanmıştır
 - Likidite kapısı emtiada yanlış pozitif üretiyor mu — üretiyorsa %4 eşiği eksiktir
-- **Likidite kilidi sayfası boş değil mi** — hiç kapı yoksa hesap çalışmıyor demektir, önce OHLC'nin gerçekten geldiğini doğrula
+- **Sayfa 7'deki likidite kapısı tablosu boş değil mi** — hiç kapı yoksa hesap çalışmıyor demektir, önce OHLC'nin gerçekten geldiğini doğrula
 - MOM işareti z(getiri) işaretiyle uyuşmayan isim sayısı ≤ %3 mü (bileşik toplamdan kaynaklanır, normaldir)
 - Tablolarda sayılar satır içinde bölünüyor mu
-- Grafiklerde boş etiketli satır var mı — skorlanmayan satırlar sızmış olabilir
+- OHLC sayfalarında skorlanmayan (kapı, hacimsiz) isim var mı — varsa filtre atlanmıştır
+- PDF 7 sayfa mı — fazlası, çıkarılan bölümlerin geri sızdığını gösterir
 - 1 aylık getirisi aşırı yüksek **ve** 12 aylık getirisi negatif olan isimleri ayrıca işaretle — bunlar momentum değil tek seferlik olay taşır
 - Türkçe karakterler PDF'te doğru görünüyor mu
 
@@ -242,7 +243,7 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 ## Bilinen sınırlar
 
 - **Uluslararası 10 yıllık getiriler** günlük seri olarak ücretsiz kaynaklardan çekilemiyor. İngiltere, Almanya, Japonya, Kanada ve Çin tahvil ETF'leriyle temsil ediliyor ve **ETF fiyatı getiriyle ters yönlüdür**. Türkiye için likit ETF vekili yok. Çözüm: TCMB EVDS + FRED API anahtarları veya Bloomberg'den GT{PARA}10Y CSV export'u.
-- **BIST 100 evreni** resmi bileşen listesi değil, likidite ile proxy'leniyor. Bu nedenle 01.10.2026'daki resmi 27 şirketlik BIST 100 revizyonu `BROAD` listesine elle uygulanmaz — likidite sıralaması zaten üyelik değişimini yansıtır; elle uygulamak yalnızca likit isimleri (KTLEV, ODINE, DAPGM, SKBNK, MIATK, KUYAS, RALYH, GENIL, IZENR, GRTHO) atarken halka arzı yeni payları da eklemeye çalışırdı, bunların çoğunda 3 yıllık seri henüz dolmadığı için 505-bar filtresinde zaten düşerler. BIST 30 ise resmi listedir ve çeyrek revizyonlarla (Oca/Nis/Tem/Eki) elle güncellenir — 01.10.2026'da TRMET girdi, DSTKF çıktı.
+- **BIST 100 evreni** resmi bileşen listesi değil, likidite ile proxy'leniyor. Resmi revizyon `BROAD` listesine elle **üyelik olarak** uygulanmaz — likidite sıralaması zaten değişimi yansıtır. Ancak resmi listeye girip geniş evrende hiç bulunmayan paylar **eklenir**, yoksa sıralamaya aday bile olamazlar: 01.10.2026 revizyonunda AYGAZ, EGGUB, ENTRA, GLYHO, GWIND, KATMR, RGYAS, RYSAS, TCKRC eklendi. Çıkanlar (DSTKF, KTLEV, MIATK, ODINE, KUYAS, RALYH, DAPGM, SKBNK, GENIL, IZENR, GRTHO…) evrende kalır; yeterince likitlerse proxy'de görünmeye devam ederler. Kod değiştiren paylar güncellenir (EFORC→EFOR, IPEKE→TRENJ, KOZAA→TRMET). BIST 30 ise resmi listedir ve çeyrek revizyonlarla (Oca/Nis/Tem/Eki) elle güncellenir — 01.10.2026'da TRMET girdi, DSTKF çıktı.
 - **Risk düzeltmesi yok.** %70 oynaklıktaki bir isimde +%20 ile %25 oynaklıktaki bir isimde +%20 aynı sinyal sayılıyor. Getiriyi `oynaklık × √k` ile bölmek sıradaki doğal adım.
 - **İşaret uyuşmazlığı ~%2.** Pencere başına çarpım her pencerede işareti korur, ama bileşik skor dört pencerenin ağırlıklı toplamı olduğu için bileşik MOM'un işareti bileşik ZRET'ten farklı çıkabilir. Yalnızca ZRET ≈ 0 olduğunda görülür ve ekonomik anlamı vardır: düşüşler teyitli, yükselişler teyitsiz. Kesin garanti isteniyorsa çarpan bileşik düzeyde uygulanır (`MOM = ZRET × m(ZVOL)`), ama pencere içi getiri-hacim eşleşmesi kaybolur.
 - Bu **kesitsel** bir çalışmadır, zaman serisi backtest'i değildir.
@@ -253,7 +254,7 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 |---|---|---|
 | v1 | Basit getiri → winsorize → z-skor; MOM = z×z; sıralama MOM_ADJ = z × e^(z/2) | İlk kurulum |
 | v2 | Sıra → normal skor (van der Waerden); winsorize kaldırıldı; likidite kapısı eklendi | JB testi 8 kombinasyonun 7'sinde normalliği reddetti; DSTKF taban kilidinde "ilgisiz düşüş" olarak sınıflanıyordu |
-| **v3** | **Hacim çarpanı m(z) = (1−B) + 2B·Φ(z), daima pozitif; MOM_ADJ kaldırıldı; kapı 505-bar filtresinden önce çalışıyor; BIST 30 listesi 01.10.2026 revizyonuna güncellendi** | **Hacim yön taşımamalı; işaret tuzağı yapısal olarak çözüldü, tek metriğe indi. BIST 30 resmi listedir, revizyon elle uygulanır** |
+| **v3** | **Hacim çarpanı m(z) = (1−B) + 2B·Φ(z), daima pozitif; MOM_ADJ kaldırıldı; kapı 505-bar filtresinden önce çalışıyor; BIST 30 listesi 01.10.2026 revizyonuna güncellendi; PDF 7 sayfalık grafik öncelikli düzene indi (OHLC panelleri), ısı haritası/çubuk/detay tablolar Excel'e taşındı** | **Hacim yön taşımamalı; işaret tuzağı yapısal olarak çözüldü, tek metriğe indi. BIST 30 resmi listedir, revizyon elle uygulanır** |
 
 ## Doğrulama — 25 Eylül 2026 referans koşusu (v3, BIST 30 = 01.10.2026 listesi)
 
@@ -309,7 +310,7 @@ Optimum nokta backtest olmadan belirlenemez. Parametre değiştiren biri, deği�
 | `src/fetch.py` | Evren tanımları (`COM`, `BOND`, `B30`, `BROAD`) + Yahoo veri çekme → `raw.pkl` |
 | `src/compute.py` | Hacim kalite testi, ETF vekil bağlama, sıra normalizasyonu, hacim çarpanı (`VOL_BAND`), likidite kapısı, kadran ataması, önceki koşu karşılaştırması → `res.pkl` |
 | `src/xl.py` | Excel üretimi (7 sekme, 33 kolon) |
-| `src/pdf.py` | Grafikler, PDF üretimi |
+| `src/pdf.py` | 7 sayfalık PDF: yöntem/özet, OHLC mum panelleri (birleşik + 4 evren), kadran haritası + likidite kapısı |
 | `send.py` | Ekip maili (`preview` = yalnızca sana, `team` = ekibe) |
 | `.github/workflows/` | `build.yml` (üretim) · `send.yml` (onaylı gönderim) |
 

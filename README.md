@@ -28,8 +28,8 @@ Her pazartesi 09:00 (TR) cuma kapanışıyla PDF + Excel üretir, önce **yalnı
 
 ## Bakım
 - Metodoloji ve ekip kullanım notları: `PROMPT.md` (Bölüm A asistan promptu, Bölüm B yorumlama kuralları).
-- BIST 30 listesi `src/fetch.py` içinde (`B30`); çeyrek revizyonlarında güncelle (Oca/Nis/Tem/Eki). 01.10.2026'da TRMET giriyor, DSTKF çıkıyor.
-- BIST 100 geniş evreni `BROAD`; yeni halka arzlar eklenmeli.
+- BIST 30 listesi `src/fetch.py` içinde (`B30`); çeyrek revizyonlarında güncelle (Oca/Nis/Tem/Eki). Son revizyon 01.10.2026: TRMET girdi, DSTKF çıktı.
+- BIST 100 geniş evreni `BROAD`; yeni halka arzlar ve resmi BIST 100'e girip listede olmayanlar eklenmeli (01.10.2026: AYGAZ, EGGUB, ENTRA, GLYHO, GWIND, KATMR, RGYAS, RYSAS, TCKRC eklendi). Ad değiştiren kodlar güncellenmeli (EFORC→EFOR, IPEKE→TRENJ, KOZAA→TRMET).
 - Nasdaq 100 listesi her koşuda api.nasdaq.com'dan çekilir; başarısızsa `state/ndx.txt` kullanılır.
 - Semboller %10'dan fazla başarısızsa ya da son bar 4 günden eskiyse iş durur, mail gitmez.
 - Parametre değişikliği (ağırlık, hacim tabanı, `VOL_BAND`, likidite kapısı eşikleri) yapılırsa commit mesajına ve rapora yazılmalı; aksi halde haftalar karşılaştırılamaz.

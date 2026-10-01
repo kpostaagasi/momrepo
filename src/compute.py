@@ -139,7 +139,7 @@ if os.path.exists("state/last.csv"):
     q1=lambda d:d.Kadran.str.startswith("Q1").mean()
     prev={"tarih":str(P.Tarih.iloc[0]),"changes":ch[["Evren","Enstrüman","Kadran_p","Kadran"]].values.tolist(),
           "out5":out5[["Evren","Enstrüman"]].values.tolist(),"q1":(q1(P),q1(A0))}
-    newgate=C[C.Kilit & ~C.key.isin(P.key)][["Evren","Enstrüman"]].values.tolist()
+    newgate=C[C.Kilit & ~C.key.isin(P.key[P.Kadran=="Likidite kilidi"])][["Evren","Enstrüman"]].values.tolist()
 else: newgate=[]
 os.makedirs("state",exist_ok=True)
 pickle.dump({"U":U,"DATE":DATE,"dropped":dropped,"log":log,"nbroad":len(liq),"prev":prev,"newgate":newgate},open("res.pkl","wb"))
