@@ -1,9 +1,13 @@
-# Getiri–Hacim Momentum Raporu · haftalık otomasyon
+# Getiri–Hacim Momentum Raporu
 
-Her pazartesi 09:00 (TR) cuma kapanışıyla PDF + Excel üretir, önce **yalnızca sana** önizleme gönderir. Ekibe gönderim, sen onaylayana kadar yapılmaz.
+BIST 30, geniş BIST 100 evreni ve Nasdaq 100 için getiri ve hacim momentumunu ölçen haftalık rapor otomasyonu.
+
+Her pazartesi cuma kapanışıyla PDF + Excel üretir ve önce **yalnızca onaylayan kişiye** önizleme gönderir. Rapor, onay verilmeden ekibe gitmez.
+
+**Teknoloji:** Python, GitHub Actions, cron-job.org. Lisans: MIT.
 
 ## Akış
-1. `build.yml` (cron) → `run.py` → `out/` şifrelenip artifact olarak yüklenir → önizleme maili `[ONAY BEKLİYOR]` → `state/last.csv.enc` (şifreli) commit
+1. cron-job.org pazartesi 09:07'de (TR) `build.yml` dosyasını tetikler → `run.py` → `out/` şifrelenip artifact olarak yüklenir → önizleme maili `[ONAY BEKLİYOR]` → `state/last.csv.enc` (şifreli) commit
 2. Önizlemeyi kontrol et → Actions → **Momentum - ekibe gönder (onay)** → Run workflow
 3. `send.yml` son başarılı üretimin artifact'ını indirip çözer ve ekibe yollar (6 günden eski rapor gönderilmez)
 
@@ -25,6 +29,7 @@ Her pazartesi 09:00 (TR) cuma kapanışıyla PDF + Excel üretir, önce **yalnı
    - `ARTIFACT_PASS` rapor/artifact şifreleme parolası (uzun, rastgele; ör. `openssl rand -base64 32`)
 4. Settings → Actions → General → Workflow permissions: **Read and write**.
 5. Actions → Momentum - haftalık üretim → Run workflow ile ilk testi yap.
+6. cron-job.org'da pazartesi 09:07 (TR) için `build.yml` `workflow_dispatch` çağrısı tanımla. GitHub schedule'ı bu hesapta 4-6 saat geciktiği için kullanılmıyor.
 
 ## Bakım
 - Metodoloji ve ekip kullanım notları: `PROMPT.md` (Bölüm A asistan promptu, Bölüm B yorumlama kuralları).
